@@ -10,30 +10,25 @@ var connection = mysql.createConnection({
 });
 
 connection.connect(function(err) {
-  if (err) {
-    console.error("error connecting: " + err.stack);
-    return;
-  }
-  console.log("connected as id " + connection.threadId);
+  if (err) throw err;
+  console.log("connected as id " + connection.threadId + "\n");
+  shamazon();
 });
-
 
 function shamazon() {
   connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
-    var table = new Table({
-      head: ['ID', 'Product Name', 'Department Name', 'Price']
-    });
-    for (var i = 0; i < result.length; i++) {
-      table.push([result[i].item_id, result[i].product_name, res[i].department_name, res[i].price])
+    for (let i = 0; i < res.length; i++) {
+      console.table([{ "ID": res[i].item_id, "Product name": res[i].product_name, "Department": res[i].department_name, "Price": res[i].price, "Stock": res[i].stock_quantity }])
     }
-  });
-  buyItem();
-}
+  })
+  buyPrompt();
+};
 
-function buyItem() {
-  //connect to products
-  connection.query("SELECT * FROM products", function(err, results) {
+
+function buyPrompt() {
+  //connect to products table
+  connection.query("SELECT * FROM products", function(err, res) {
     //take user input to make selection
     inquirer.prompt([{
       name: 'id',
@@ -75,15 +70,15 @@ function buyItem() {
             });
 
 
-        } else if (res[0].stock_quantity - quantity <= res[0].stock_quantity && res[0].stock_quantity !== 0) {
-          console.log("Sorry, we do not have enough items in stock to fulfill your order");
-          shamazon();
+          } else if (res[0].stock_quantity - quantity <= res[0].stock_quantity && res[0].stock_quantity !== 0) {
+            console.log("We're sorry, we were unable to complete your order because we only have " + res[0].stock_quantity + ' in stock, please update your desired amount.');
+            shamazon();
+          } else {
+            console.log("We're sorry, we were unable to complete your order, the item is no longer in stock. Please check back with us soon!");
+            shamazon();
         }
       });
 
     });
   });
 }
-//app.listen(PORT, function() {
- // console.log("Server listening on: http://localhost:" + PORT);
-//});
