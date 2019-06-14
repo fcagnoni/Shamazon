@@ -3,31 +3,31 @@ var inquirer = require('inquirer');
 
 var connection = mysql.createConnection({
   host: "localhost",
-  port: 8080,
+  port: 3306,
   user: "root",
   password: "omologator",
   database: "shamazon_db"
 });
 
 connection.connect(function(err) {
-  if (err) throw err;
-  console.log("connected as id " + connection.threadId + "\n");
-  shamazon();
+  if (err) {
+    console.error("error connecting: " + err.stack);
+    return;
+  }
+  console.log("connected as id " + connection.threadId);
 });
 
+
 function shamazon() {
-  connection.query("SELECT * FROM products", function(err, result) {
+  connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
     var table = new Table({
       head: ['ID', 'Product Name', 'Department Name', 'Price']
     });
     for (var i = 0; i < result.length; i++) {
-      table.push([result[i].item_id, result[i].product_name, result[i].department_name, result[i].price])
+      table.push([result[i].item_id, result[i].product_name, res[i].department_name, res[i].price])
     }
-  
-
   });
-
   buyItem();
 }
 
@@ -56,7 +56,6 @@ function buyItem() {
         }
         return false;
       }
-      //do this when user input is entered
       
     }]).then(function(order) {
       //takes in user input
@@ -72,8 +71,7 @@ function buyItem() {
           connection.query('UPDATE products SET stock_quantity=? WHERE item_id=?', [res[0].stock_quantity - quantity, productID],
             function(err, shamazon) {
               if (err) throw err;
-            
-              //shamazon();
+              shamazon();
             });
 
 
@@ -86,3 +84,6 @@ function buyItem() {
     });
   });
 }
+//app.listen(PORT, function() {
+ // console.log("Server listening on: http://localhost:" + PORT);
+//});
